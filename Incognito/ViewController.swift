@@ -27,8 +27,7 @@
 /// THE SOFTWARE.
 
 import UIKit
-import AeroGearHttp
-import AeroGearOAuth2
+import OAuth
 
 private let http = Http(baseURL: "https://www.googleapis.com")
 
@@ -106,36 +105,7 @@ class ViewController: UIViewController, UINavigationControllerDelegate {
   }
   
   @IBAction private func share(_ sender: AnyObject) {
-    let googleConfig = GoogleConfig(
-      clientId: "720408399018-a0obd1vqeochu0ivj4ve6gclom4oulub.apps.googleusercontent.com",
-      scopes: ["https://www.googleapis.com/auth/drive"]
-    )
-    
-    let gdModule = AccountManager.addGoogleAccount(config: googleConfig)
-    http.authzModule = gdModule
-    
-    let multipartData = MultiPartData(
-      data: snapshot(),
-      name: "image",
-      filename: "incognito_photo",
-      mimeType: "image/jpg"
-    )
-    
-    let multipartArray = ["file": multipartData]
-    
-    http.request(
-      method: .post,
-      path: "upload/drive/v2/files",
-      parameters: multipartArray,
-      completionHandler: ({ response, error in
-        if let err = error {
-          self.presentAlert("Error", message: err.localizedDescription)
-        } else {
-          self.presentAlert("Success", message: "Succesfully uploaded!")
-        }
-      })
-    )
-    
+    let oauthswift = OAuth2S
     // still need to modify the info.plist in order to configure the url scheme
   }
   
