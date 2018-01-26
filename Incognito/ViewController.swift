@@ -27,9 +27,7 @@
 /// THE SOFTWARE.
 
 import UIKit
-import OAuth
-
-private let http = Http(baseURL: "https://www.googleapis.com")
+import OAuthSwift
 
 class ViewController: UIViewController, UINavigationControllerDelegate {
   
@@ -105,8 +103,40 @@ class ViewController: UIViewController, UINavigationControllerDelegate {
   }
   
   @IBAction private func share(_ sender: AnyObject) {
-    let oauthswift = OAuth2S
-    // still need to modify the info.plist in order to configure the url scheme
+    let oauthswift = OAuth2Swift(
+      consumerKey:    "720408399018-a0obd1vqeochu0ivj4ve6gclom4oulub.apps.googleusercontent.com",
+      consumerSecret: "",    // No secret required
+      authorizeUrl:   "https://accounts.google.com/o/oauth2/auth",
+      accessTokenUrl: "https://accounts.google.com/o/oauth2/token",
+      responseType:   "code"
+    )
+    
+    oauthswift.allowMissingStateCheck = true
+    oauthswift.authorizeURLHandler = SafariURLHandler(viewController: self, oauthSwift: oauthswift)
+    
+    guard let rwURL = URL(string: "com.raywenderlich.Incognito:/oauth2Callback") else { return }
+    
+    oauthswift.authorize(
+      withCallbackURL: rwURL,
+      scope: "https://www.googleapis.com/auth/drive",
+      state: "",
+      success: { (credential, response, parameters) in
+        oauthswift.client.postImage(
+          "https://www.googleapis.com/upload/drive/v2/files",
+          parameters: parameters,
+          image: self.snapshot(),
+          success: { (response) in
+            if let _ = try? JSONSerialization.jsonObject(with: response.data, options: []) {
+              self.presentAlert("Success", message: "Succesfully uploaded!")
+            }
+          },
+          failure: { (error) in
+            self.presentAlert("Error", message: error.localizedDescription)
+          })
+      },
+      failure: { (error) in
+        self.presentAlert("Error", message: error.localizedDescription)
+      })
   }
   
 }
